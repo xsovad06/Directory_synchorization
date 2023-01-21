@@ -1,4 +1,6 @@
-# periodical one-way directory synchonization
+#!/usr/bin/env python3
+
+# periodical one-way directory synchronization
 # author: Damián Sova
 # date: 27.12.2022
 
@@ -82,22 +84,31 @@ def sync_directory(source, destination):
 
 
 if __name__ == "__main__":
- 
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("source", help="path to the source directory to be synchonized")
-    parser.add_argument("destination", help="path to the destination directory of synchonization")
-    parser.add_argument("interval", help="synchonization interval in seconds", type=int)
+    parser.add_argument("source", help="path to the source directory to be synchronized")
+    parser.add_argument("destination", help="path to the destination directory of synchronization")
+    parser.add_argument("interval", help="synchronization interval in seconds", type=int)
     parser.add_argument("logs", help="path to the logs destination")
     args = parser.parse_args()
 
-    logging.basicConfig(
-        filename = (args.logs if args.logs[-1] == '/' else args.logs + '/') + "synchronization.log",
-        level = logging.INFO,
-        format='[ %(asctime)s ][ %(levelname)s ] - %(message)s',
-        datefmt='%m.%d.%Y %I:%M:%S'
-    )
+    try:
+        for directory in [args.source, args.destination, args.logs]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
-    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+        logging.basicConfig(
+            filename = (args.logs if args.logs[-1] == '/' else args.logs + '/') + "synchronization.log",
+            level = logging.INFO,
+            format='[ %(asctime)s ][ %(levelname)s ] - %(message)s',
+            datefmt='%m.%d.%Y %I:%M:%S'
+        )
 
-    # Periodically sync files from source to destination directory
-    do_every(args.interval, sync_directory, args.source, args.destination)
+        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+        logging.info(f"New synchronization session started!")
+
+        # Periodically sync files from source to destination directory
+        do_every(args.interval, sync_directory, args.source, args.destination)
+    except Exception as e:
+        print(f'Following error occured: {e}')
